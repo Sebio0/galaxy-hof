@@ -1,0 +1,21 @@
+Sphinx;3:6;;Kristall;222501503;crystal
+Sphinx;3:6;;Metall;289305986;metal
+Messemaker;5:1;MW&M;Asteroiden;400;roids
+3k1;10:3;MW&M;Kristall Extraktoren;2256;ex_crystal
+Messemaker;5:1;MW&M;Metall Extraktoren;5805;ex_metal
+ThePunisher ;1088:4;Die 10;Scanverstärker;79886;amp
+Mamsell;10:1;MW&M;Scanblocker;73517;blocker
+..,-;1488:5;Die 10;Jäger;20510;s1
+BanZai;1088:2;Die 10;Bomber;57900;s2
+3k1;10:3;MW&M;Fregatte;9008;s3
+..,-;1488:5;Die 10;Zerstörer;2010;s4
+Hasi;6:3;Myll;Kreuzer;1112;s5
+Messemaker;5:1;MW&M;Schlachtschiff;1001;s6
+ebastuart;5:5;MW&M;Träger;2000;s7
+ebastuart;5:5;MW&M;Kaperschiff;100000;s9
+Lordsachse ;1088:1;Die 10;Schutzschiff;87335;s10
+Bachus;6:4;Myll;Rubium;17403;g1
+argu;3:5;;Pulsar;4949;g2
+argu;3:5;;Coon;980;g3
+Lordsachse ;1088:1;Die 10;Centurion;526;g4
+LarsVader;22:1;;Horus;84321;g5

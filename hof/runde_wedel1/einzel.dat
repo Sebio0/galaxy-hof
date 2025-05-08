@@ -1,0 +1,21 @@
+Hazzor;1:3;;Kristall;897953;crystal
+Hiob;1:1;;Metall;1140817;metal
+seppel;2:1;;Asteroiden;62;roids
+seppel;2:1;;Kristall Extraktoren;362;ex_crystal
+seppel;2:1;;Metall Extraktoren;853;ex_metal
+Stulle;2:2;;Scanverstärker;300;amp
+seppel;2:1;;Scanblocker;529;blocker
+Stulle;2:2;;Jäger;5000;s1
+PreSiDenT;3:3;;Bomber;3171;s2
+HermanLaue;2:3;;Fregatte;7460;s3
+Hiob;1:1;;Zerstörer;3000;s4
+Hiob;1:1;;Kreuzer;256;s5
+HermanLaue;2:3;;Schlachtschiff;0;s6
+Stulle;2:2;;Träger;600;s7
+Hazzor;1:3;;Kaperschiff;90137;s9
+seppel;2:1;;Schutzschiff;22420;s10
+kAlli;3:1;;Rubium;876;g1
+Hiob;1:1;;Pulsar;130;g2
+HermanLaue;2:3;;Coon;0;g3
+HermanLaue;2:3;;Centurion;0;g4
+Falcon;3:4;;Horus;2971;g5
