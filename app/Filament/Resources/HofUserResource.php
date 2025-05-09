@@ -16,7 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class HofUserResource extends Resource
 {
     protected static ?string $model = HofUser::class;
-
+    protected static ?string $label = 'Hof User';
+    protected static ?string $pluralLabel = 'Hof Users';
+    protected static ?string $navigationGroup = 'Galaxy-Network';
+    protected static ?string $navigationLabel = 'Hof Users';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -31,6 +34,24 @@ class HofUserResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('nickname')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('coordinates')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('alliance_tag')
+                    ->sortable()
+                    ->searchable(),
+            ])->filters([
+                //
+            ])->headerActions([
+            ])->actions([
+                //
+            ])->bulkActions([
                 //
             ])
             ->filters([

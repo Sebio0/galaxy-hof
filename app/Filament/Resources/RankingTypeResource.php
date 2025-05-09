@@ -18,7 +18,7 @@ class RankingTypeResource extends Resource
     protected static ?string $model = RankingType::class;
     protected static ?string $label = 'Ranking-Typ';
     protected static ?string $pluralLabel = 'Ranking-Typen';
-    protected static ?string $navigationGroup = 'Spiele';
+    protected static ?string $navigationGroup = 'Galaxy-Network';
     protected static ?string $navigationLabel = 'Ranking-Typen';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -54,10 +54,15 @@ class RankingTypeResource extends Resource
                 Tables\Columns\TextColumn::make('key_name')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('display_name')
+                Tables\Columns\TextInputColumn::make('display_name')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('type')
+                Tables\Columns\SelectColumn::make('type')
+                    ->options(
+                        ['resource' => 'Ressource',
+                            'fleet' => 'Schiffe',
+                            'defense' => 'Geschütze',
+                            'misc' => 'Rest'])
                     ->sortable()
                     ->searchable()
             ])
@@ -65,7 +70,6 @@ class RankingTypeResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

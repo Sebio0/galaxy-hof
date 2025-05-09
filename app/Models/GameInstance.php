@@ -16,7 +16,7 @@ class GameInstance extends Model
     use HasUlids;
 
 
-    protected $fillable = ['name', 'id'];
+    protected $fillable = ['name', 'id', 'server_instance_id'];
 
     public function rounds(): GameInstance|HasMany
     {
@@ -25,6 +25,6 @@ class GameInstance extends Model
 
     public function serverInstance(): BelongsTo
     {
-        return $this->belongsTo(ServerInstance::class, 'server_instance_id', 'server_instance_id');
+        return $this->belongsTo(ServerInstance::class, 'server_instance_id', 'id');
     }
 }

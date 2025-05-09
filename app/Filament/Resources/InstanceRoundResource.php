@@ -19,7 +19,7 @@ class InstanceRoundResource extends Resource
     protected static ?string $model = InstanceRound::class;
     protected static ?string $label = 'Runde';
     protected static ?string $pluralLabel = 'Runden';
-    protected static ?string $navigationGroup = 'Spiele';
+    protected static ?string $navigationGroup = 'Galaxy-Network';
     protected static ?string $navigationLabel = 'Runden';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -27,12 +27,24 @@ class InstanceRoundResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('instance_id')
+                Forms\Components\Select::make('game_instance_id')
                     ->required()
                     ->relationship('instance', 'name')
                     ->searchable()
                     ->preload()
-                    ->label('Spiel-Instanz')
+                    ->label('Spiel-Instanz'),
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->label('Rundenname')
+                    ->maxLength(255)
+                    ->unique(InstanceRound::class, 'name', ignoreRecord: true),
+                Forms\Components\DateTimePicker::make('start_date')
+                    ->required()
+                    ->label('Startdatum')
+                    ->placeholder('YYYY-MM-DD HH:MM:SS'),
+                Forms\Components\DateTimePicker::make('end_date')
+                    ->label('Enddatum')
+                    ->placeholder('YYYY-MM-DD HH:MM:SS'),
             ]);
     }
 
@@ -40,14 +52,14 @@ class InstanceRoundResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->sortable()
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('id')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('instance.name')
-                    ->sortable()
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('instance.name')->label('Spiel-Instanz')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('start_date')->label('Startdatum')->sortable(),
+                Tables\Columns\TextColumn::make('end_date')->label('Enddatum')->sortable(),
             ])
+            ->defaultSort('start_date', 'desc')
+            ->striped()
             ->filters([
                 //
             ])

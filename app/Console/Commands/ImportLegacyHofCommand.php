@@ -39,6 +39,7 @@ class ImportLegacyHofCommand extends Command
             if (in_array($basename, $this->ignoredDirs, true)) {
                 continue;
             }
+
             list($status, $issues) = $this->importDirectory($dir);
             $report[] = $status;
             $allIssues = array_merge($allIssues, $issues);
@@ -168,6 +169,7 @@ class ImportLegacyHofCommand extends Command
                     }
 
                     Ranking::create([
+                        'hof_id' => $hof->id,
                         'hof_user_id' => $userMap[$uniqueKey],
                         'ranking_type_id' => $rt->id,
                         'value' => (int)$val,

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Cache;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ class Ranking extends Model
     use HasUlids;
 
     protected $fillable = [
+        'hof_id',
         'hof_user_id',
         'ranking_type_id',
         'value',
@@ -44,6 +46,28 @@ class Ranking extends Model
 
     public function hof(): BelongsTo
     {
-        return $this->belongsTo(HallOfFame::class, 'hof_user_id');
+        return $this->belongsTo(HallOfFame::class, 'hof_id');
+    }
+
+
+    /**
+     * Get ranking type ID by its key_name.
+     *
+     * Caches all key_name => id mappings for performance.
+     *
+     * @param string $keyName
+     * @return string|null
+     */
+    public static function typeIdByKeyName(string $keyName): ?string
+    {
+        $cacheKey = 'ranking_types:key_to_id';
+
+        $map = Cache::rememberForever($cacheKey, function () {
+            return \DB::table('ranking_types')
+                ->pluck('id', 'key_name')
+                ->toArray();
+        });
+
+        return $map[$keyName] ?? null;
     }
 }

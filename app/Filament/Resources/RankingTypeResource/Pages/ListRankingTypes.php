@@ -16,4 +16,9 @@ class ListRankingTypes extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function makeTable(): \Filament\Tables\Table
+    {
+        return parent::makeTable()->recordUrl(null);
+    }
 }

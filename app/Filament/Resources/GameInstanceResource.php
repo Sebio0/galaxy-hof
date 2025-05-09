@@ -16,7 +16,7 @@ class GameInstanceResource extends Resource
     protected static ?string $model = GameInstance::class;
     protected static ?string $label = 'Spiel-Instanz';
     protected static ?string $pluralLabel = 'Spiel-Instanzen';
-    protected static ?string $navigationGroup = 'Spiele';
+    protected static ?string $navigationGroup = 'Galaxy-Network';
     protected static ?string $navigationLabel = 'Spiel-Instanzen';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -28,8 +28,14 @@ class GameInstanceResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('server_instance_id')
+                    ->label('Server-Instance ID')
+                    ->required()
+                    ->relationship('serverInstance', 'server_name')
+                    ->searchable()
+                    ->preload()
+                    ->reactive()
             ]);
-
     }
 
     public static function table(Table $table): Table
@@ -40,6 +46,10 @@ class GameInstanceResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('serverInstance.server_name')
+                    ->label('Server-Instance')
                     ->sortable()
                     ->searchable(),
             ])->filters([

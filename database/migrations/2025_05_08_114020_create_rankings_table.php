@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('rankings', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUlid('hof_id')->constrained('hall_of_fames')->onDelete('restrict');
             $table->foreignUlid('hof_user_id')->constrained('hof_users')->onDelete('restrict');
             $table->foreignUlid('ranking_type_id')->constrained('ranking_types')->onDelete('restrict');
             $table->unsignedBigInteger('value')->default(0);

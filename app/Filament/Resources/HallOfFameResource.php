@@ -16,10 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class HallOfFameResource extends Resource
 {
     protected static ?string $model = HallOfFame::class;
-    protected static ?string $label = 'Hall-Of-Fame';
-    protected static ?string $pluralLabel = 'Hall-Of-Fames';
-    protected static ?string $navigationGroup = 'Spiele';
-    protected static ?string $navigationLabel = 'Hall-Of-Fames';
+    protected static ?string $label = 'Hall of Fame';
+    protected static ?string $pluralLabel = 'Hall of Fames';
+    protected static ?string $navigationGroup = 'Galaxy-Network';
+    protected static ?string $navigationLabel = 'Hall of Fame';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -36,6 +36,10 @@ class HallOfFameResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\DateTimePicker::make('round.end_date')
+                    ->required()
+                    ->label('Enddatum')
+                    ->placeholder('YYYY-MM-DD HH:MM:SS')
             ]);
     }
 
