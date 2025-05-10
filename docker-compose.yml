@@ -14,7 +14,7 @@ services:
             - ./:/app
         networks:
             - hof-internal
-
+            - galaxy-network-storage
     # Redis for cache and queue backend
     redis:
         image: redis:alpine
@@ -39,7 +39,7 @@ services:
         command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
         networks:
             - hof-internal
-
+            - galaxy-network-storage
     # Nginx HTTP server
     nginx:
         image: nginx:alpine
@@ -61,8 +61,9 @@ networks:
     # Internal network for app, redis, worker, nginx
     hof-internal:
         driver: bridge
-
+    galaxy-network-storage:
+        external: true
     # External network for nginx proxy
     proxy:
-        external:
-            name: proxy_network
+        external: true
+        name: proxy
