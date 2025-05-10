@@ -53,6 +53,18 @@ services:
         networks:
             - hof-internal
             - proxy
+        labels:
+            traefik.enable: true
+            traefik.docker.network: proxy
+            traefik.http.routers.galaxy-hof-secure.entrypoints: websecure
+            traefik.http.routers.galaxy-hof-secure.middlewares: default@file
+            traefik.http.routers.galaxy-hof-secure.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
+            traefik.http.routers.galaxy-hof-secure.service: galaxy-hof
+            traefik.http.routers.galaxy-hof-secure.tls: "true"
+            traefik.http.routers.galaxy-hof-secure.tls.certresolver: tls_resolver
+            traefik.http.routers.galaxy-hof.entrypoints: web
+            traefik.http.routers.galaxy-hof.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
+            traefik.http.services.galaxy-hof.loadbalancer.server.port: "80"
 
 # Networks definition
 networks:

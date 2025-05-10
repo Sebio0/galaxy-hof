@@ -1,7 +1,7 @@
 ### Dockerfile for Laravel Queue Worker with Supervisor
 
 # 1) Base Image
-FROM php:8.1-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # 2) System dependencies
 RUN apk add --no-cache \
