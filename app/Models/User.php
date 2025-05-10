@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use URL;
 
 class User extends Authenticatable
 {
@@ -44,5 +45,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getResetPasswordUrl(string $token, array $parameters = []): string
+    {
+        return URL::signedRoute(
+            'password.request',
+            [
+                'email' => $this->email,
+                'token' => $token,
+                ...$parameters,
+            ],
+        );
     }
 }
