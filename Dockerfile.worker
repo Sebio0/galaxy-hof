@@ -17,7 +17,7 @@ RUN apk add --no-cache \
         curl
 
 # 3) PHP Extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache \
+RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache intl \
     && pecl install redis \
     && docker-php-ext-enable redis
 
