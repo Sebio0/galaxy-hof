@@ -6,15 +6,27 @@ services:
         image: webdevops/php-nginx:8.4
         container_name: galaxy_hof_app
         restart: always
-        working_dir: /app
         environment:
             WEB_DOCUMENT_ROOT: /app/public
             TZ: Europe/Berlin
         volumes:
             - ./:/app
         networks:
+            - proxy
             - hof-internal
             - galaxy-network-storage
+        labels:
+            traefik.enable: true
+            traefik.docker.network: proxy
+            traefik.http.routers.galaxy-hof-secure.entrypoints: websecure
+            traefik.http.routers.galaxy-hof-secure.middlewares: default@file
+            traefik.http.routers.galaxy-hof-secure.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
+            traefik.http.routers.galaxy-hof-secure.service: galaxy-hof
+            traefik.http.routers.galaxy-hof-secure.tls: "true"
+            traefik.http.routers.galaxy-hof-secure.tls.certresolver: tls_resolver
+            traefik.http.routers.galaxy-hof.entrypoints: web
+            traefik.http.routers.galaxy-hof.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
+            traefik.http.services.galaxy-hof.loadbalancer.server.port: "80"
     # Redis for cache and queue backend
     redis:
         image: redis:alpine
@@ -40,31 +52,6 @@ services:
         networks:
             - hof-internal
             - galaxy-network-storage
-    # Nginx HTTP server
-    nginx:
-        image: nginx:alpine
-        container_name: galaxy_hof_nginx
-        restart: always
-        depends_on:
-            - app
-        volumes:
-            - ./:/var/www/html:ro
-            - ./nginx/conf.d:/etc/nginx/conf.d:ro
-        networks:
-            - hof-internal
-            - proxy
-        labels:
-            traefik.enable: true
-            traefik.docker.network: proxy
-            traefik.http.routers.galaxy-hof-secure.entrypoints: websecure
-            traefik.http.routers.galaxy-hof-secure.middlewares: default@file
-            traefik.http.routers.galaxy-hof-secure.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
-            traefik.http.routers.galaxy-hof-secure.service: galaxy-hof
-            traefik.http.routers.galaxy-hof-secure.tls: "true"
-            traefik.http.routers.galaxy-hof-secure.tls.certresolver: tls_resolver
-            traefik.http.routers.galaxy-hof.entrypoints: web
-            traefik.http.routers.galaxy-hof.rule: Host(`hof.galaxy-network.de`) || Host(`hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.net`) || Host(`www.hof.galaxy-network.de`)
-            traefik.http.services.galaxy-hof.loadbalancer.server.port: "80"
 
 # Networks definition
 networks:
