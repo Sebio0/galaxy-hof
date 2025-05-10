@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 use App\Filament\Resources\HallOfFameResource;
 use App\Models\InstanceRound;
-use App\Jobs\ImportHallOfFameJob;
+use App\Jobs\GenerateHallOfFameJob;
 use App\Models\HallOfFame;
 
 class CreateHallOfFame extends CreateRecord
@@ -42,7 +42,7 @@ class CreateHallOfFame extends CreateRecord
         $hof = $this->record;
         $round = InstanceRound::findOrFail($hof->instance_round_id);
 
-        ImportHallOfFameJob::dispatch([
+        GenerateHallOfFameJob::dispatch([
             'game_instance_id' => $round->game_instance_id,
             'round_id'         => $round->id,
             'hof_id'           => $hof->id,

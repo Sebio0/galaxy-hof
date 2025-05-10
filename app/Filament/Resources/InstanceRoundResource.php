@@ -61,7 +61,13 @@ class InstanceRoundResource extends Resource
             ->defaultSort('start_date', 'desc')
             ->striped()
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('game_instance_id')
+                    ->relationship('instance', 'name')
+                    ->label('Spiel-Instanz')
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->placeholder('Alle'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

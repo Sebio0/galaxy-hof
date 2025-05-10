@@ -54,14 +54,16 @@ class HallOfFameResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('instance.name')
+                    ->getStateUsing(function($record) {
+                        return $record->instance->name ?? 'N/A';
+                    })
                     ->sortable()
                     ->searchable(),
-            ])
+            ])->defaultSort('created_at', 'desc')
             ->filters([
-                //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

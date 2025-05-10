@@ -7,16 +7,19 @@ use App\Models\HallOfFame;
 use App\Models\HofUser;
 use App\Models\InstanceRound;
 use App\Models\Ranking;
+use App\Models\RankingType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Log\Logger;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ImportHallOfFameJob implements ShouldQueue
+class GenerateHallOfFameJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -62,15 +65,15 @@ class ImportHallOfFameJob implements ShouldQueue
 
         // Begin target DB transaction
         DB::transaction(function () use ($connectionName) {
-            // Create InstanceRound and HallOfFame
-            $round = InstanceRound::create([
-                'id' => $this->data['round_id'],
-                'game_instance_id' => $this->data['game_instance_id'],
-                'name' => $this->data['round_name'],
-                'start_date' => $this->data['start_date'],
-                'end_date' => $this->data['end_date'],
-            ]);
-
+            $round = InstanceRound::firstOrCreate(
+                ['id' => $this->data['round_id']],
+                [
+                    'game_instance_id' => $this->data['game_instance_id'],
+                    'name' => $this->data['round_name'],
+                    'start_date' => $this->data['start_date'],
+                    'end_date' => $this->data['end_date'],
+                ]
+            );
             $hof = HallOfFame::create([
                 'instance_round_id' => $round->id,
                 'name' => $this->data['round_name'],
@@ -124,34 +127,45 @@ class ImportHallOfFameJob implements ShouldQueue
                 ];
 
                 foreach ($basic as $key => $value) {
+                    Log::debug('Ranking: ' . $key . ' => ' . $value);
                     Ranking::create([
                         'id' => Str::uuid()->toString(),
+                        'hof_id' => $this->data['hof_id'],
                         'hof_user_id' => $hofUser->id,
-                        'ranking_type_id' =>
-                        // assuming mapping from key to ranking_types.id is in cache/table
-                            Ranking::typeIdByKeyName($key),
+                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
                         'value' => $value,
                     ]);
                 }
 
                 // Fleet rankings s1..s10
+// Fleet rankings s1..s10
                 for ($i = 1; $i <= 10; $i++) {
                     $key = 's' . $i;
+                    if($key === 's8'){
+                        // Skip s8 (Kommandoschiff)
+                        continue;
+                    }
                     Ranking::create([
                         'id' => Str::uuid()->toString(),
                         'hof_user_id' => $hofUser->id,
-                        'ranking_type_id' => Ranking::typeIdByKeyName($key),
+                        'hof_id'          => $hof->id,
+                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
                         'value' => $fleet->{$key} ?? 0,
                     ]);
                 }
 
-                // Defense rankings g1..g6
+// Defense rankings g1..g6
                 for ($i = 1; $i <= 6; $i++) {
                     $key = 'g' . $i;
+                    if($key === 'g6'){
+                        // skip g6 raumbasis
+                        continue;
+                    }
                     Ranking::create([
                         'id' => Str::uuid()->toString(),
                         'hof_user_id' => $hofUser->id,
-                        'ranking_type_id' => Ranking::typeIdByKeyName($key),
+                        'hof_id'          => $hof->id,
+                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
                         'value' => $defense->{$key} ?? 0,
                     ]);
                 }

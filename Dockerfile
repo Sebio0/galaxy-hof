@@ -1,0 +1,47 @@
+### Dockerfile for Laravel Queue Worker with Supervisor
+
+# 1) Base Image
+FROM php:8.1-fpm-alpine
+
+# 2) System dependencies
+RUN apk add --no-cache \
+        bash \
+        supervisor \
+        git \
+        unzip \
+        libzip-dev \
+        oniguruma-dev \
+        autoconf \
+        g++ \
+        make \
+        curl
+
+# 3) PHP Extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache \
+    && pecl install redis \
+    && docker-php-ext-enable redis
+
+# 4) Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+
+# 5) Set working directory
+WORKDIR /var/www/html
+
+# 6) Copy composer files and install dependencies
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# 7) Copy application code
+COPY . ./
+
+# 8) Supervisor config
+# We expect supervisord.conf to be mounted into /etc/supervisor/conf.d/worker.conf
+
+# 9) Permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 10) Expose nothing (worker runs via Supervisor)
+
+# 11) Entrypoint: start Supervisor in foreground
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
