@@ -18,8 +18,7 @@ RUN apk add --no-cache \
         icu-dev
 
 # 3) PHP Extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache \
-    && docker-php-ext-install intl \
+RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache intl \
     && pecl install redis \
     && docker-php-ext-enable redis
 
@@ -29,21 +28,20 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin -
 # 5) Set working directory
 WORKDIR /var/www/html
 
-# 6) Copy composer files and install dependencies
-COPY composer.json composer.lock ./
+# 6) Copy composer files and artisan for scripts
+COPY composer.json composer.lock artisan ./
+
+# 7) Install composer dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# 7) Copy application code
+# 8) Copy remaining application code
 COPY . ./
 
-# 8) Supervisor config
+# 9) Supervisor config
 # We expect supervisord.conf to be mounted into /etc/supervisor/conf.d/worker.conf
 
-# 9) Permissions
+# 10) Permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 10) Expose nothing (worker runs via Supervisor)
-
 # 11) Entrypoint: start Supervisor in foreground
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
