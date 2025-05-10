@@ -50,8 +50,6 @@ services:
         volumes:
             - ./:/var/www/html:ro
             - ./nginx/conf.d:/etc/nginx/conf.d:ro
-        ports:
-            - "80:80"
         networks:
             - hof-internal
             - proxy

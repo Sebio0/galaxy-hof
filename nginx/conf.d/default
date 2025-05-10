@@ -1,0 +1,44 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name hof.galaxy-network.de;
+
+    # Document Root
+    root /var/www/html/public;
+    index index.php index.html index.htm;
+
+    # Main location
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP-FPM handling
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param HTTP_PROXY "";  # Prevents request smuggling
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        access_log off;
+        log_not_found off;
+        deny all;
+    }
+
+    # Optional: Websockets (falls benötigt)
+    # location /ws/ {
+    #     proxy_pass http://app:6001;
+    #     proxy_http_version 1.1;
+    #     proxy_set_header Upgrade $http_upgrade;
+    #     proxy_set_header Connection "Upgrade";
+    #     proxy_set_header Host $host;
+    #     proxy_cache_bypass $http_upgrade;
+    # }
+
+    # Logging
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+}
