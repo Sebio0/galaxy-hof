@@ -1,4 +1,4 @@
-### Dockerfile for Laravel Queue Worker with Supervisor
+### Dockerfile for Laravel Queue Worker with Supervisor and Intl Extension
 
 # 1) Base Image
 FROM php:8.4-fpm-alpine
@@ -14,12 +14,14 @@ RUN apk add --no-cache \
         autoconf \
         g++ \
         make \
-        curl
+        curl \
+        icu-dev
 
 # 3) PHP Extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache intl \
+RUN docker-php-ext-install pdo pdo_mysql mbstring zip opcache \
+    && docker-php-ext-install intl \
     && pecl install redis \
-    && docker-php-ext-enable redis && docker-php-ext-enable intl
+    && docker-php-ext-enable redis
 
 # 4) Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
