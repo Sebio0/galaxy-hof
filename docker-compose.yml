@@ -4,7 +4,7 @@ services:
     # Laravel Application (PHP-FPM)
     app:
         image: webdevops/php-nginx:8.4
-        container_name: laravel_app
+        container_name: galaxy_hof_app
         restart: always
         working_dir: /app
         environment:
@@ -18,7 +18,7 @@ services:
     # Redis for cache and queue backend
     redis:
         image: redis:alpine
-        container_name: laravel_redis
+        container_name: galaxy_hof_redis
         restart: always
         networks:
             - hof-internal
@@ -28,7 +28,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.worker
-        container_name: laravel_queue_worker
+        container_name: galaxy_hof_queue_worker
         restart: always
         depends_on:
             - redis
@@ -43,7 +43,7 @@ services:
     # Nginx HTTP server
     nginx:
         image: nginx:alpine
-        container_name: laravel_nginx
+        container_name: galaxy_hof_nginx
         restart: always
         depends_on:
             - app
