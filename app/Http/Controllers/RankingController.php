@@ -6,7 +6,7 @@ use Spatie\RouteAttributes\Attributes\Get;
 
 class RankingController extends Controller
 {
-    #[Get('/', name: 'ranking.index')]
+    #[Get(uri: '/', name: 'ranking.index')]
     public function index(){
         return view('ranking.index');
     }
