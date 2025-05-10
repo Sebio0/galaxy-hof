@@ -43,5 +43,8 @@ RUN chmod -R 755 storage bootstrap/cache
 
 # 10) Expose none (worker runs via Supervisor)
 
+RUN composer install --no-interaction --prefer-dist
+RUN php artisan optimize
+
 # 11) Entrypoint: start Supervisor in foreground
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
