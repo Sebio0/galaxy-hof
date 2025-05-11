@@ -12,142 +12,107 @@ use Exception;
 class RankingImportService
 {
     /**
-     * Import a single round, sourcing from gn_hof or gn_users based on roundNumber
+     * Import a round by name ("Runde X") or number.
      *
-     * @param int $roundNumber
+     * @param string|null $roundName   e.g. "Runde 72"
+     * @param int|null    $roundNumber if omitted, extracted from roundName
      * @return void
      */
-    public function importSingleRound(int $roundNumber): void
+    public function importRound(string $roundName = null, int $roundNumber = null): void
     {
-        $database = $roundNumber <= 63 ? 'gn_legacy' : "galaxy_hof_r{$roundNumber}";
+        // Determine round number and name
+        if ($roundNumber === null) {
+            if (!preg_match('/Runde\s*(\d+)/i', $roundName, $matches)) {
+                throw new \InvalidArgumentException("Ungültiges Round-Format: {$roundName}");
+            }
+            $roundNumber = (int) $matches[1];
+        }
+        $roundName = $roundName ?? "Runde {$roundNumber}";
 
+        // Set legacy connection database (configured in .env as 'game')
+        config(['database.connections.legacy.database' => config('database.connections.game.database')]);
+        DB::purge('legacy');
+
+        DB::beginTransaction();
         try {
-            config(['database.connections.legacy.database' => $database]);
-            DB::purge('legacy');
-
-            $round = EternalRanking::firstOrCreate(
+            // Create or update ranking meta
+            $round = EternalRanking::updateOrCreate(
                 ['round_number' => $roundNumber],
-                ['round_name' => "Runde {$roundNumber}"]
+                ['round_name'   => $roundName]
             );
 
-            if ($roundNumber <= 63) {
-                $rows = DB::connection('legacy')
-                    ->table('gn_hof')
-                    ->select('email_hashed', 'nick', DB::raw("runde{$roundNumber} as score"))
-                    ->get();
+            // Fetch and import rows
+            $rows = $this->fetchSourceRows($roundNumber);
+            foreach ($rows as $row) {
+                // Resolve player
+                $player = EternalRankingPlayer::updateOrCreate(
+                    ['email_hash' => $row['email_hash']],
+                    ['nickname'   => $row['nickname']]
+                );
 
-                foreach ($rows as $row) {
-                    $player = EternalRankingPlayer::firstOrCreate(
-                        ['email_hash' => $row->email_hashed],
-                        ['nickname' => $row->nick]
-                    );
-
-                    EternalRankingResult::updateOrCreate(
-                        ['player_id' => $player->id, 'ranking_id' => $round->id],
-                        ['score' => $row->score]
-                    );
-                }
-            } else {
-                $rows = DB::connection('legacy')
-                    ->table('gn_users as u')
-                    ->join('gn_user_details as d', 'u.id', '=', 'd.id')
-                    ->select('u.nickname', 'u.macht as score', 'd.email')
-                    ->get();
-
-                foreach ($rows as $row) {
-                    $emailHash = md5(strtolower(trim($row->email)));
-                    $player = EternalRankingPlayer::firstOrCreate(
-                        ['email_hash' => $emailHash],
-                        ['nickname' => $row->nickname]
-                    );
-
-                    EternalRankingResult::updateOrCreate(
-                        ['player_id' => $player->id, 'ranking_id' => $round->id],
-                        ['score' => $row->score]
-                    );
-                }
+                // Upsert result
+                EternalRankingResult::updateOrCreate(
+                    ['player_id'  => $player->id, 'ranking_id' => $round->id],
+                    ['score'      => $row['score']]
+                );
             }
 
+            // Update percentages
             $this->recalculatePercentages($round->id);
+
+            DB::commit();
         } catch (Exception $e) {
-            Log::error("Fehler beim Importieren von Runde {$roundNumber}: " . $e->getMessage(), [
+            DB::rollBack();
+            Log::error("Fehler beim Import Runde {$roundNumber}: {$e->getMessage()}", [
                 'roundNumber' => $roundNumber,
-                'database' => $database,
-                'exception' => $e
+                'roundName'   => $roundName,
+                'exception'   => $e,
             ]);
         }
     }
 
-    public function importFromDatabase(string $database, string $roundName, int $roundNumber): void
+    /**
+     * Fetch source rows according to legacy schema.
+     *
+     * @param int $roundNumber
+     * @return array<int, array{email_hash:string, nickname:string, score:int}>
+     */
+    protected function fetchSourceRows(int $roundNumber): array
     {
-        try {
-            config(['database.connections.legacy.database' => $database]);
-            DB::purge('legacy');
-
-            $round = EternalRanking::firstOrCreate(
-                ['round_name' => $roundName, 'round_number' => $roundNumber],
-            );
-
-            if ($roundNumber <= 63) {
-                $rows = DB::connection('legacy')
-                    ->table('gn_hof')
-                    ->select('email_hashed', 'nick', DB::raw("runde{$roundNumber} as score"))
-                    ->get();
-
-                foreach ($rows as $row) {
-                    $player = EternalRankingPlayer::firstOrCreate(
-                        ['email_hash' => $row->email_hashed],
-                        ['nickname' => $row->nick]
-                    );
-
-                    EternalRankingResult::updateOrCreate(
-                        ['player_id' => $player->id, 'ranking_id' => $round->id],
-                        ['score' => $row->score]
-                    );
-                }
-            } else {
-                $rows = DB::connection('legacy')
-                    ->table('gn_users as u')
-                    ->join('gn_user_details as d', 'u.id', '=', 'd.id')
-                    ->select('u.nickname', 'u.macht as score', 'd.email')
-                    ->get();
-
-                foreach ($rows as $row) {
-                    $emailHash = md5(strtolower(trim($row->email)));
-                    $player = EternalRankingPlayer::firstOrCreate(
-                        ['email_hash' => $emailHash],
-                        ['nickname' => $row->nickname]
-                    );
-
-                    EternalRankingResult::updateOrCreate(
-                        ['player_id' => $player->id, 'ranking_id' => $round->id],
-                        ['score' => $row->score]
-                    );
-                }
-            }
-
-            $this->recalculatePercentages($round->id);
-        } catch (Exception $e) {
-            Log::error("Fehler beim Importieren aus Datenbank '{$database}' für Runde {$roundNumber}: " . $e->getMessage(), [
-                'roundName' => $roundName,
-                'roundNumber' => $roundNumber,
-                'database' => $database,
-                'exception' => $e
-            ]);
+        $conn = DB::connection('legacy');
+        if ($roundNumber <= 63) {
+            return $conn->table('gn_hof')
+                ->selectRaw('email_hashed as email_hash, nick as nickname, ?? as score', ["runde{$roundNumber}"])
+                ->get()
+                ->map(fn($r) => (array) $r)
+                ->toArray();
         }
+
+        // New source schema
+        return $conn->table('gn_users as u')
+            ->join('gn_user_details as d', 'u.id', 'd.id')
+            ->selectRaw('md5(lower(trim(d.email))) as email_hash, u.nickname as nickname, u.macht as score')
+            ->get()
+            ->map(fn($r) => (array) $r)
+            ->toArray();
     }
 
-    private function recalculatePercentages(int $rankingId): void
+    /**
+     * Recalculate percentage scores.
+     *
+     * @param string $rankingId
+     * @return void
+     */
+    protected function recalculatePercentages(string $rankingId): void
     {
         $maxScore = EternalRankingResult::where('ranking_id', $rankingId)->max('score');
 
         if ($maxScore > 0) {
             EternalRankingResult::where('ranking_id', $rankingId)
                 ->orderBy('id')
-                ->chunkById(500, function ($results) use ($maxScore) {
-                    foreach ($results as $result) {
-                        $pct = round(($result->score / $maxScore) * 100, 3);
-                        $result->pct = $pct;
+                ->chunkById(500, function ($batch) use ($maxScore) {
+                    foreach ($batch as $result) {
+                        $result->pct = round($result->score / $maxScore * 100, 3);
                         $result->save();
                     }
                 });

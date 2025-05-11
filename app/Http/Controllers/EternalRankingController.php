@@ -5,54 +5,80 @@ namespace App\Http\Controllers;
 use App\Models\EternalRanking;
 use App\Models\EternalRankingPlayer;
 use App\Models\EternalRankingResult;
+use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Get;
+use Spatie\RouteAttributes\Attributes\Post;
 
 class EternalRankingController extends Controller
 {
     #[Get(uri: '/eternal', name: 'ranking.eternal.index')]
-    public function index()
+    public function index(Request $request)
+    {
+        // Default: alle ohne Filter
+        [$players, $rounds, $results] = $this->buildQuery(
+            $request->input('round_id'),
+            $request->input('search'),
+            $request->input('page', 1)
+        );
+        return view('ranking.eternal.index', compact('players', 'rounds', 'results'));
+    }
+
+    #[Post(uri: '/eternal/table', name: 'ranking.eternal.table')]
+    public function table(Request $request)
+    {
+        [$players, $rounds, $results] = $this->buildQuery(
+            $request->input('round_id'),
+            $request->input('search'),
+            $request->input('page', 1)
+        );
+        return view('ranking.eternal.partials.table', compact('players', 'rounds', 'results'));
+    }
+
+    #[Post(uri: '/eternal/search', name: 'ranking.eternal.search')]
+    public function search(Request $request)
+    {
+        return $this->table($request);
+    }
+
+    #[Post(uri: '/eternal/round', name: 'ranking.eternal.round')]
+    public function filterRound(Request $request)
+    {
+        return $this->table($request);
+    }
+
+    protected function buildQuery($roundId, $search, $page)
     {
         $perPage = 100;
-        $roundId = request('round_id');
-        $currentPage = request('page', 1);
+        $playerQuery = EternalRankingPlayer::select('eternal_ranking_players.*')
+            ->selectSub(fn($q) => $q->from('eternal_ranking_results')
+                ->selectRaw('AVG(pct)')
+                ->whereColumn('eternal_ranking_results.player_id', 'eternal_ranking_players.id')
+                ->whereNotNull('pct')
+                , 'avg_pct');
 
-        // Spieler mit berechnetem Durchschnitt in SQL (kein Eager-Loading nötig)
-        $players = EternalRankingPlayer::select('eternal_ranking_players.*')
-            ->selectSub(function ($query) {
-                $query->from('eternal_ranking_results')
-                    ->selectRaw('AVG(pct)')
-                    ->whereColumn('eternal_ranking_results.player_id', 'eternal_ranking_players.id')
-                    ->whereNotNull('pct');
-            }, 'avg_pct')
-            ->orderByDesc('avg_pct')
-            ->paginate($perPage, ['*'], 'page', $currentPage);
-
-        // Alle Runden (Tabellen-Header)
-        $rounds = EternalRanking::orderBy('round_number')->pluck('round_number');
-
-        // Nur Ergebnisse für angezeigte Spieler (gefiltert optional nach round_id)
-        $playerIds = $players->pluck('id');
-        $resultsQuery = EternalRankingResult::with('ranking')
-            ->whereIn('player_id', $playerIds);
-        if ($roundId) {
-            $resultsQuery->whereHas('ranking', function ($q) use ($roundId) {
-                $q->where('id', $roundId);
-            });
+        if ($search) {
+            $playerQuery->where('nickname', 'like', "%{$search}%");
         }
-        $allResults = $resultsQuery->get();
 
-        // [playerId][roundNumber] => result
+        $players = $playerQuery
+            ->orderByDesc('avg_pct')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->appends(['round_id' => $roundId, 'search' => $search]);
+
+        $rounds = EternalRanking::orderBy('round_number')->pluck('round_number');
+        $playerIds = $players->pluck('id');
+
+        $allResults = EternalRankingResult::with('ranking')
+            ->whereIn('player_id', $playerIds)
+            ->when($roundId, fn($q) => $q->whereHas('ranking', fn($q2) => $q2->where('id', $roundId)))
+            ->get();
+
         $results = [];
         foreach ($allResults as $row) {
             $rid = $row->ranking->round_number;
             $results[$row->player_id][$rid] = $row;
         }
 
-        return view('ranking.eternal.index', [
-            'players' => $players,
-            'rounds' => $rounds,
-            'results' => $results,
-            'roundId' => $roundId
-        ]);
+        return [$players, $rounds, $results];
     }
 }

@@ -23,7 +23,7 @@ class AddRoundCommand extends Command
         $this->info("🚀 Starte Import für Runde {$roundNumber}...");
 
         try {
-            $this->service->importSingleRound($roundNumber);
+            $this->service->importRound($roundNumber);
             $this->info("🎉 Runde {$roundNumber} erfolgreich importiert und Prozentwerte berechnet.");
         } catch (\Exception $e) {
             $this->error("❌ Fehler beim Import von Runde {$roundNumber}: {$e->getMessage()}");
