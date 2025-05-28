@@ -1,16 +1,14 @@
-<!doctype html>
-<html lang="de">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style> table.compact td, table.compact th { padding:.25rem; font-size:.85rem; white-space: nowrap; } </style>
-    <title>Spieler-Historie</title>
-</head>
-<body>
-<div class="container-fluid mt-4">
-    <h1 class="mb-3">Spieler-Historie aller Runden</h1>
+@extends('layouts.ranking')
+
+@section('title', 'Galaxy Hall of Fame - Ewige Bestenliste')
+
+@section('subtitle', 'Spieler-Historie aller Runden')
+
+@section('styles')
+<style> table.compact td, table.compact th { padding:.25rem; font-size:.85rem; white-space: nowrap; } </style>
+@endsection
+
+@section('content')
     <form id="filter-form" method="POST" action="#" class="mb-3 row g-2">
         @csrf
         <div class="col-auto">
@@ -40,7 +38,4 @@
         {{-- Initial: komplette Tabelle --}}
         @include('ranking.eternal.partials.table')
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endsection

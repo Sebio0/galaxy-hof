@@ -88,11 +88,15 @@ class ImportLegacyHofCommand extends Command
                     'database_password' => '']
             );
 
-            $instance = GameInstance::updateOrCreate(
-                ['name' => 'Default'],
-                ['deleted_at' => null,
-                    'server_instance_id' => $server->id]
-            );
+            // Find the primary instance or create it if it doesn't exist
+            $instance = GameInstance::where('primary', true)->first();
+            if (!$instance) {
+                $instance = GameInstance::create([
+                    'name' => 'Default',
+                    'primary' => true,
+                    'server_instance_id' => $server->id
+                ]);
+            }
 
             // Runde und HoF
             $round = InstanceRound::create([
@@ -126,21 +130,72 @@ class ImportLegacyHofCommand extends Command
                 throw new \Exception('Keine .dat Dateien gefunden');
             }
 
+            // First process einzel.dat to extract ranking type names
+            $rankingTypeNames = [];
+            $einzelFile = null;
+
+            foreach ($datFiles as $file) {
+                if ($file->getFilename() === 'einzel.dat') {
+                    $einzelFile = $file;
+                    $lines = File::lines($file->getPathname())
+                        ->filter(fn($l) => trim($l) !== '')
+                        ->map(function($l) {
+                            $l = mb_convert_encoding($l, 'UTF-8', 'ISO-8859-1');
+                            // Special handling for «NL» to ensure correct encoding
+                            if (strpos($l, 'NL') !== false) {
+                                $l = str_replace(['Â«NLÂ»', '«NL»'], '«NL»', $l);
+                            }
+                            return $l;
+                        })
+                        ->values();
+
+                    foreach ($lines as $line) {
+                        $parts = explode(';', trim($line));
+                        if (count($parts) >= 6) {
+                            // Extract ranking type name (4th value) and key (6th value)
+                            $rankingName = trim($parts[3]);
+                            $rankingKey = trim($parts[5]);
+                            $rankingTypeNames[$rankingKey] = $rankingName;
+                        }
+                    }
+
+                    $this->info("Extracted " . count($rankingTypeNames) . " ranking type names from einzel.dat");
+                    break;
+                }
+            }
+
             // Import
             $userMap = [];
 
             foreach ($datFiles as $file) {
+                // Skip einzel.dat for actual data import
+                if ($file->getFilename() === 'einzel.dat') {
+                    continue;
+                }
+
                 $key = Str::before($file->getFilename(), '.dat');
+                $displayName = $rankingTypeNames[$key] ?? ucfirst($key);
+
                 $rt = RankingType::firstOrCreate(
                     ['key_name' => $key],
-                    ['display_name' => ucfirst($key),
+                    ['display_name' => $displayName,
                         'type' => 'resource']
                 );
 
                 $lines = File::lines($file->getPathname())
                     ->filter(fn($l) => trim($l) !== '')
-                    ->map(fn($l) => mb_convert_encoding($l, 'UTF-8', 'ISO-8859-1'))
+                    ->map(function($l) {
+                        $l = mb_convert_encoding($l, 'UTF-8', 'ISO-8859-1');
+                        // Special handling for «NL» to ensure correct encoding
+                        if (strpos($l, 'NL') !== false) {
+                            $l = str_replace(['Â«NLÂ»', '«NL»'], '«NL»', $l);
+                        }
+                        return $l;
+                    })
                     ->values();
+
+                // Ensure all strings are properly encoded as UTF-8
+                $this->info("Processing file: " . $file->getFilename() . " with " . count($lines) . " lines");
 
                 foreach ($lines as $pos => $raw) {
                     $parts = explode(';', trim($raw));
@@ -158,11 +213,16 @@ class ImportLegacyHofCommand extends Command
                     $uniqueKey = "$nick|$coord";
 
                     if (!isset($userMap[$uniqueKey])) {
+                        // Data is already converted to UTF-8 in the lines processing
+                        $nickname = $nick;
+                        $coordinates = $coord;
+                        $allianceTag = $tag ?: null;
+
                         $user = HofUser::firstOrCreate(
-                            ['nickname' => $nick,
-                                'coordinates' => $coord,
+                            ['nickname' => $nickname,
+                                'coordinates' => $coordinates,
                                 'hof_id' => $hof->id],
-                            ['alliance_tag' => $tag ?: null]
+                            ['alliance_tag' => $allianceTag]
                         );
 
                         $userMap[$uniqueKey] = $user->id;

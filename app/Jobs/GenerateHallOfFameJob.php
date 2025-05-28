@@ -84,27 +84,14 @@ class GenerateHallOfFameJob implements ShouldQueue
                 ->table('gn_users as u')
                 ->join('gn_users_detail as d', 'u.id', '=', 'd.id')
                 ->select([
-                    'u.id', 'u.nick', 'd.email',
-                    'u.crystal', 'u.metal', 'u.ex_crystal', 'u.ex_metal',
-                    'u.macht', 'u.roids', 'u.amp', 'u.blocker'
+                    'u.id', 'u.nick', 'd.email'
                 ])
                 ->get();
 
+            // Get all ranking types and group them by type
+            $rankingTypes = RankingType::all()->groupBy('type');
+
             foreach ($users as $user) {
-                // Sum fleet s1..s10
-                $fleet = DB::connection($connectionName)
-                    ->table('gn_flotte')
-                    ->where('owner_id', $user->id)
-                    ->selectRaw('SUM(s1) as s1, SUM(s2) as s2, SUM(s3) as s3, SUM(s4) as s4, SUM(s5) as s5, SUM(s6) as s6, SUM(s7) as s7, SUM(s8) as s8, SUM(s9) as s9, SUM(s10) as s10')
-                    ->first();
-
-                // Sum defence g1..g6
-                $defense = DB::connection($connectionName)
-                    ->table('gn_defence')
-                    ->where('owner_id', $user->id)
-                    ->selectRaw('SUM(g1) as g1, SUM(g2) as g2, SUM(g3) as g3, SUM(g4) as g4, SUM(g5) as g5, SUM(g6) as g6')
-                    ->first();
-
                 // Create HofUser
                 $hofUser = HofUser::create([
                     'id' => Str::uuid()->toString(),
@@ -114,60 +101,84 @@ class GenerateHallOfFameJob implements ShouldQueue
                     'alliance_tag' => null,
                 ]);
 
-                // Basic rankings
-                $basic = [
-                    'crystal' => $user->crystal,
-                    'metal' => $user->metal,
-                    'ex_crystal' => $user->ex_crystal,
-                    'ex_metal' => $user->ex_metal,
-                    'macht' => $user->macht,
-                    'roids' => $user->roids,
-                    'amp' => $user->amp,
-                    'blocker' => $user->blocker,
-                ];
+                // Process rankings based on their type
+                foreach ($rankingTypes as $type => $typeRankings) {
+                    $sourceTable = '';
+                    $sourceData = null;
 
-                foreach ($basic as $key => $value) {
-                    Log::debug('Ranking: ' . $key . ' => ' . $value);
-                    Ranking::create([
-                        'id' => Str::uuid()->toString(),
-                        'hof_id' => $this->data['hof_id'],
-                        'hof_user_id' => $hofUser->id,
-                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
-                        'value' => $value,
-                    ]);
-                }
-
-                // Fleet rankings s1..s10
-// Fleet rankings s1..s10
-                for ($i = 1; $i <= 10; $i++) {
-                    $key = 's' . $i;
-                    if($key === 's8'){
-                        // Skip s8 (Kommandoschiff)
-                        continue;
+                    // Determine the source table based on the ranking type
+                    switch ($type) {
+                        case 'fleet':
+                            $sourceTable = 'gn_flotte';
+                            break;
+                        case 'defense':
+                            $sourceTable = 'gn_defence';
+                            break;
+                        case 'resource':
+                        case 'misc':
+                            $sourceTable = 'gn_users';
+                            break;
+                        default:
+                            Log::warning("Unknown ranking type: {$type}");
+                            continue 2; // Skip to the next type
                     }
-                    Ranking::create([
-                        'id' => Str::uuid()->toString(),
-                        'hof_user_id' => $hofUser->id,
-                        'hof_id'          => $hof->id,
-                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
-                        'value' => $fleet->{$key} ?? 0,
-                    ]);
-                }
 
-// Defense rankings g1..g6
-                for ($i = 1; $i <= 6; $i++) {
-                    $key = 'g' . $i;
-                    if($key === 'g6'){
-                        // skip g6 raumbasis
-                        continue;
+                    // Extract the keys we need to fetch from this table
+                    $keys = $typeRankings->pluck('key_name')->toArray();
+
+                    if (empty($keys)) {
+                        continue; // Skip if no keys for this type
                     }
-                    Ranking::create([
-                        'id' => Str::uuid()->toString(),
-                        'hof_user_id' => $hofUser->id,
-                        'hof_id'          => $hof->id,
-                        'ranking_type_id' => RankingType::where('key_name', $key)->select('id')->firstOrFail()->id,
-                        'value' => $defense->{$key} ?? 0,
-                    ]);
+
+                    // Fetch data from the appropriate table
+                    if ($type === 'fleet' || $type === 'defense') {
+                        // For fleet and defense, we need to sum the values
+                        $selectFields = [];
+                        foreach ($keys as $key) {
+                            $selectFields[] = "SUM({$key}) as {$key}";
+                        }
+
+                        $sourceData = DB::connection($connectionName)
+                            ->table($sourceTable)
+                            ->where('owner_id', $user->id)
+                            ->selectRaw(implode(', ', $selectFields))
+                            ->first();
+                    } else {
+                        // For resource and misc, we fetch directly from gn_users
+                        $sourceData = DB::connection($connectionName)
+                            ->table($sourceTable)
+                            ->where('id', $user->id)
+                            ->select($keys)
+                            ->first();
+                    }
+
+                    if (!$sourceData) {
+                        continue; // Skip if no data found
+                    }
+
+                    // Process the rankings for this type
+                    foreach ($typeRankings as $rankingType) {
+                        $key = $rankingType->key_name;
+
+                        // Skip specific keys if needed
+                        if (($type === 'fleet' && $key === 's8') ||
+                            ($type === 'defense' && $key === 'g6')) {
+                            continue;
+                        }
+
+                        if (property_exists($sourceData, $key)) {
+                            $value = $sourceData->$key ?? 0;
+                            Log::debug("Ranking ({$type}): {$key} => {$value}");
+
+                            Ranking::create([
+                                'id' => Str::uuid()->toString(),
+                                'hof_id' => $hof->id,
+                                'hof_user_id' => $hofUser->id,
+                                'ranking_type_id' => $rankingType->id,
+                                'value' => $value,
+                            ]);
+                        }
+                    }
                 }
             }
         });

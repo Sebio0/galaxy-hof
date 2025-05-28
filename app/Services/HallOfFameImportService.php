@@ -85,12 +85,14 @@ class HallOfFameImportService
                 $hofUser = HofUser::create([
                     'id'           => Str::uuid()->toString(),
                     'hof_id'       => $hof->id,
-                    'nickname'     => $u->nick,
-                    'coordinates'  => "{$u->galid}:{$u->placeid}",
-                    'alliance_tag' => DB::connection($this->connectionName)
+                    'nickname'     => $this->ensureUtf8Encoding($u->nick),
+                    'coordinates'  => $this->ensureUtf8Encoding("{$u->galid}:{$u->placeid}"),
+                    'alliance_tag' => $this->ensureUtf8Encoding(
+                            DB::connection($this->connectionName)
                             ->table('gn_galaxy')
                             ->where('galaxy', $u->galid)
-                            ->value('tag') ?? null,
+                            ->value('tag') ?? null
+                        ),
                 ]);
 
                 // 8b) Basis-Rankings
@@ -135,5 +137,22 @@ class HallOfFameImportService
             DB::connection($this->connectionName)->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Ensures that a string is properly encoded in UTF-8.
+     * Converts from ISO-8859-1 if necessary.
+     *
+     * @param string|null $string The string to ensure encoding for
+     * @return string|null The properly encoded string
+     */
+    protected function ensureUtf8Encoding(?string $string): ?string
+    {
+        if ($string === null) {
+            return null;
+        }
+
+        // Always convert from ISO-8859-1 to UTF-8 to ensure proper encoding
+        return mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
     }
 }

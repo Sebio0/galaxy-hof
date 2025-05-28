@@ -1,7 +1,59 @@
 // Body
-$body-bg: #f8fafc;
+$body-bg: #032f3a; // Dark teal background color
 
 // Typography
 $font-family-sans-serif: 'Nunito', sans-serif;
 $font-size-base: 0.9rem;
 $line-height-base: 1.6;
+
+// Dark Theme Colors
+$dark-teal: #032f3a; // Dark teal background color
+$steel-blue: #1f5464; // Dampened steel blue
+$blue-gray: #264b58; // Blue-gray
+$light-gray: #ffffff; // White (text color for better contrast)
+$medium-gray: #768992; // Medium gray
+$very-dark-blue: #0f181e; // Very dark blue
+$light-blue-gray: #8d9ba4; // Light blue-gray
+$reddish-brown: #b13c3c; // Reddish brown (for logout button)
+
+// Override Bootstrap variables
+$primary: $steel-blue;
+$secondary: $blue-gray;
+$success: $light-blue-gray;
+$info: $light-gray;
+$warning: $medium-gray;
+$danger: $reddish-brown;
+$light: $light-gray;
+$dark: $very-dark-blue;
+
+// Text colors
+$body-color: $light-gray;
+$link-color: #a8d8ff; // Bright blue for better contrast
+$link-hover-color: lighten($link-color, 15%);
+
+// Component colors
+$card-bg: $blue-gray;
+$card-border-color: $steel-blue;
+$input-bg: $very-dark-blue;
+$input-color: $light-gray;
+$input-border-color: $steel-blue;
+$input-focus-border-color: lighten($steel-blue, 15%);
+$input-focus-box-shadow: 0 0 0 0.25rem rgba($steel-blue, 0.25);
+
+// Navbar
+$navbar-dark-color: $light-gray;
+$navbar-dark-hover-color: $light-blue-gray;
+$navbar-dark-active-color: $light-blue-gray;
+$navbar-dark-brand-color: $light-gray;
+$navbar-dark-brand-hover-color: $light-blue-gray;
+$navbar-dark-toggler-border-color: rgba($light-gray, 0.1);
+
+// Dropdown
+$dropdown-bg: $blue-gray;
+$dropdown-color: $light-gray;
+$dropdown-border-color: rgba($light-gray, 0.15);
+$dropdown-link-color: $light-gray;
+$dropdown-link-hover-color: $light-blue-gray;
+$dropdown-link-hover-bg: $very-dark-blue;
+$dropdown-link-active-color: $light-blue-gray;
+$dropdown-link-active-bg: $steel-blue;

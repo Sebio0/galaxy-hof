@@ -16,7 +16,7 @@ class GameInstance extends Model
     use HasUlids;
 
 
-    protected $fillable = ['name', 'id', 'server_instance_id'];
+    protected $fillable = ['name', 'id', 'server_instance_id', 'primary'];
 
     public function rounds(): GameInstance|HasMany
     {

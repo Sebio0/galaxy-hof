@@ -28,6 +28,8 @@ class GameInstanceResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Checkbox::make('primary')
+                ->label('Hauptrunde'),
                 Forms\Components\Select::make('server_instance_id')
                     ->label('Server-Instance ID')
                     ->required()

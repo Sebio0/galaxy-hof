@@ -1,0 +1,190 @@
+/* Dark Theme for Vue Components */
+
+:root {
+  --dark-teal: #032f3a;
+  --steel-blue: #1f5464;
+  --blue-gray: #264b58;
+  --light-gray: #ffffff;
+  --medium-gray: #768992;
+  --very-dark-blue: #0f181e;
+  --light-blue-gray: #a8d8ff; /* Updated to bright blue for better contrast */
+  --reddish-brown: #b13c3c;
+}
+
+/* Base styles */
+.dark-theme {
+  background-color: var(--dark-teal);
+  color: var(--light-gray);
+}
+
+/* Card styles */
+.dark-theme .card {
+  background-color: var(--blue-gray);
+  border-color: var(--steel-blue);
+}
+
+.dark-theme .card-header {
+  background-color: var(--steel-blue);
+  border-bottom: 1px solid var(--very-dark-blue);
+  color: var(--light-gray);
+}
+
+.dark-theme .card-body {
+  color: var(--light-gray);
+}
+
+.dark-theme .card-footer {
+  background-color: rgba(15, 24, 30, 0.2);
+  border-top: 1px solid var(--very-dark-blue);
+}
+
+/* Button styles */
+.dark-theme .btn-primary {
+  background-color: var(--steel-blue);
+  border-color: var(--steel-blue);
+}
+
+.dark-theme .btn-primary:hover,
+.dark-theme .btn-primary:focus {
+  background-color: #18424e;
+  border-color: #153a45;
+}
+
+.dark-theme .btn-secondary {
+  background-color: var(--blue-gray);
+  border-color: var(--blue-gray);
+}
+
+.dark-theme .btn-secondary:hover,
+.dark-theme .btn-secondary:focus {
+  background-color: #1e3a44;
+  border-color: #1a333c;
+}
+
+.dark-theme .btn-danger,
+.dark-theme .btn-logout {
+  background-color: var(--reddish-brown);
+  border-color: var(--reddish-brown);
+}
+
+.dark-theme .btn-danger:hover,
+.dark-theme .btn-danger:focus,
+.dark-theme .btn-logout:hover,
+.dark-theme .btn-logout:focus {
+  background-color: #9a3434;
+  border-color: #8a2e2e;
+}
+
+.dark-theme .btn-outline-primary {
+  color: var(--light-gray);
+  border-color: var(--steel-blue);
+}
+
+.dark-theme .btn-outline-primary:hover,
+.dark-theme .btn-outline-primary:focus {
+  background-color: var(--steel-blue);
+  color: var(--light-gray);
+}
+
+/* Form styles */
+.dark-theme .form-control,
+.dark-theme .form-select {
+  background-color: var(--very-dark-blue);
+  color: var(--light-gray);
+  border-color: var(--steel-blue);
+}
+
+.dark-theme .form-control:focus,
+.dark-theme .form-select:focus {
+  background-color: #131f26;
+  color: var(--light-gray);
+  border-color: #276277;
+  box-shadow: 0 0 0 0.25rem rgba(31, 84, 100, 0.25);
+}
+
+.dark-theme .form-control::placeholder {
+  color: rgba(195, 207, 210, 0.6);
+}
+
+.dark-theme .form-label {
+  color: var(--light-gray);
+}
+
+/* Table styles */
+.dark-theme .table {
+  color: var(--light-gray);
+}
+
+.dark-theme .table thead th {
+  background-color: var(--steel-blue);
+  color: var(--light-gray);
+  border-color: var(--very-dark-blue);
+}
+
+.dark-theme .table tbody td {
+  border-color: rgba(195, 207, 210, 0.1);
+  color: var(--light-gray);
+}
+
+.dark-theme .table th {
+  color: var(--light-gray);
+}
+
+.dark-theme .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: rgba(15, 24, 30, 0.2);
+}
+
+.dark-theme .table-hover > tbody > tr:hover {
+  background-color: rgba(31, 84, 100, 0.2);
+}
+
+/* Link styles */
+.dark-theme a {
+  color: #a8d8ff;
+}
+
+.dark-theme a:hover,
+.dark-theme a:focus {
+  color: #c4e4ff;
+}
+
+/* Alert styles */
+.dark-theme .alert-info {
+  background-color: rgba(38, 75, 88, 0.7);
+  color: var(--light-gray);
+  border-color: var(--steel-blue);
+}
+
+/* Custom ranking styles */
+.dark-theme .table-rankings a {
+  color: #d1edff;
+  font-weight: 600;
+}
+
+.dark-theme .table-rankings a:hover,
+.dark-theme .table-rankings a:focus {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.dark-theme .bg-resource {
+  background-color: rgba(141, 155, 164, 0.2) !important;
+}
+
+.dark-theme .bg-fleet {
+  background-color: rgba(31, 84, 100, 0.2) !important;
+}
+
+.dark-theme .bg-defense {
+  background-color: rgba(177, 60, 60, 0.2) !important;
+}
+
+.dark-theme .bg-misc {
+  background-color: rgba(118, 137, 146, 0.2) !important;
+}
+
+/* Apply dark theme to all Vue components */
+#app {
+  background-color: var(--dark-teal);
+  color: var(--light-gray);
+}

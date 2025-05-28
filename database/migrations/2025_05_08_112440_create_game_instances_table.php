@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('game_instances', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('name');
+            $table->boolean('primary')->index()->default(false);
 $table->softDeletes();
             $table->timestamps();
         });

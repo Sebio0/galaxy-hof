@@ -30,9 +30,8 @@ class HallOfFame extends Model
         return $this->belongsTo(InstanceRound::class, 'instance_round_id');
     }
 
-    public function rankings(): HasMany|HallOfFame
+    public function rankings(): HasMany
     {
-        return $this->hasMany(Ranking::class, 'hof_user_id');
+        return $this->hasMany(Ranking::class, 'hof_id');
     }
 }
-

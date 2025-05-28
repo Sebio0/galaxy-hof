@@ -91,7 +91,7 @@ class ImportLegacyRankings extends Command
                     DB::table('eternal_ranking_players')->insert([
                         'id' => $playerId,
                         'email_hash' => $emailHash,
-                        'nickname' => $row->nick,
+                        'nickname' => $this->ensureUtf8Encoding($row->nick),
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -100,7 +100,7 @@ class ImportLegacyRankings extends Command
                     // optionally update nickname
                     DB::table('eternal_ranking_players')
                         ->where('id', $playerId)
-                        ->update(['nickname' => $row->nick, 'updated_at' => now()]);
+                        ->update(['nickname' => $this->ensureUtf8Encoding($row->nick), 'updated_at' => now()]);
                 }
 
                 // upsert result
@@ -149,5 +149,28 @@ class ImportLegacyRankings extends Command
         $this->info('Import completed successfully.');
 
         return 0;
+    }
+
+    /**
+     * Ensures that a string is properly encoded in UTF-8.
+     * Converts from ISO-8859-1 if necessary.
+     * Special handling for «NL» to ensure correct encoding.
+     *
+     * @param string|null $string The string to ensure encoding for
+     * @return string|null The properly encoded string
+     */
+    protected function ensureUtf8Encoding(?string $string): ?string
+    {
+        if ($string === null) {
+            return null;
+        }
+
+        // Special handling for «NL» to ensure correct encoding
+        if (strpos($string, 'NL') !== false) {
+            $string = str_replace(['Â«NLÂ»', '«NL»'], '«NL»', $string);
+        }
+
+        // Always convert from ISO-8859-1 to UTF-8 to ensure proper encoding
+        return mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
     }
 }
