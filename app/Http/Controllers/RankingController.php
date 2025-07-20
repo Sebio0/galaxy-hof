@@ -159,7 +159,7 @@ class RankingController extends Controller
      * Calculate the player's position in the combined ranking without calculating scores for all players
      * This is an optimized version of the calculation that only gets the position for a single player
      *
-     * @param int $hofUserId The player's ID
+     * @param string $hofUserId The player's ID
      * @param HallOfFame $hallOfFame The hall of fame instance
      * @param array $playerRankingPositions The player's positions in different ranking types
      * @param array $maxPlayersByRankingType Maximum number of players for each ranking type
@@ -382,7 +382,7 @@ class RankingController extends Controller
         $combinedScore = $this->calculateCombinedRankingScore($rankingPositions);
 
         // Get player's position in the combined ranking using the optimized method
-        list($combinedPosition, $totalPlayers) = $this->calculatePlayerCombinedPosition(
+        [$combinedPosition, $totalPlayers] = $this->calculatePlayerCombinedPosition(
             $hofUserId,
             $hallOfFame,
             $rankingPositions,
