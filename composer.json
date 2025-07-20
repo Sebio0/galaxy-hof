@@ -17,7 +17,8 @@
         "spatie/laravel-responsecache": "^7.6",
         "spatie/laravel-route-attributes": "^1.25",
         "tapp/filament-invite": "^1.0",
-        "tomatophp/filament-users": "^2.0"
+        "tomatophp/filament-users": "^2.0",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

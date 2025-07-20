@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add CSRF token to all HTMX requests
+            htmx.config.headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        });
+    </script>
     <!-- Bootstrap is loaded through app.scss with our custom dark theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
