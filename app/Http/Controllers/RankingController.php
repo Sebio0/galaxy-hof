@@ -497,7 +497,7 @@ class RankingController extends Controller
         if (!$selectedGameInstance) {
             // Find the primary game instance
             $primaryInstance = Cache::remember('primary_game_instance', 3600, function () {
-                return GameInstance::where('primary', true)->first();
+                return GameInstance::where('primary_instance', true)->first();
             });
 
             if ($primaryInstance) {
@@ -614,7 +614,7 @@ class RankingController extends Controller
         if (!$selectedGameInstance) {
             // Find the primary game instance
             $primaryInstance = Cache::remember('primary_game_instance', 3600, function () {
-                return GameInstance::where('primary', true)->first();
+                return GameInstance::where('primary_instance', true)->first();
             });
 
             if ($primaryInstance) {

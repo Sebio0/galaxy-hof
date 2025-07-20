@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('game_instances', function (Blueprint $table) {
-            $table->boolean('primary')->default(false)->after('id');
+            $table->boolean('primary_instance')->default(false)->after('id');
         });
     }
 
